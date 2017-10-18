@@ -7,12 +7,14 @@ RUN apt-get update &&\
     apt-get install --no-install-recommends --assume-yes --quiet ca-certificates curl git zlib1g-dev  &&\
     rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install zip 
- 
-RUN pecl install xdebug-2.5.5 && docker-php-ext-enable xdebug
-RUN echo 'zend_extension="/usr/local/lib/php/extensions/no-debug-non-zts-20151012/xdebug.so"' >> /usr/local/etc/php/php.ini
-RUN echo 'xdebug.remote_port=9000' >> /usr/local/etc/php/php.ini
-RUN echo 'xdebug.remote_enable=1' >> /usr/local/etc/php/php.ini
-RUN echo 'xdebug.remote_connect_back=1' >> /usr/local/etc/php/php.ini
+RUN docker-php-ext-install zip
+RUN docker-php-ext-install pdo pdo_mysql
 
+
+RUN yes | pecl install xdebug \
+    && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \
+    && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini \
+    && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini
+
+RUN a2enmod rewrite
 COPY  default.conf /etc/apache2/sites-enabled/000-default.conf
